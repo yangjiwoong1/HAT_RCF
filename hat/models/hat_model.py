@@ -88,7 +88,7 @@ class HATModel(SRModel):
                             output_tile = self.net_g(input_tile)
                 except RuntimeError as error:
                     print('Error', error)
-                print(f'\tTile {tile_idx}/{tiles_x * tiles_y}')
+                print(f'	Tile {tile_idx}/{tiles_x * tiles_y}')
 
                 # output tile area on total image
                 output_start_x = input_start_x * self.opt['scale']
@@ -155,50 +155,54 @@ class HATModel(SRModel):
 
             # save image and log to wandb
             if save_img:
-                if self.opt['is_train']:
-                    save_img_path = osp.join(self.opt['path']['visualization'], img_name,
-                                             f'{img_name}_{current_iter}.png')
-                else:
-                    if self.opt['val']['suffix']:
-                        save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
-                                                 f'{img_name}_{self.opt["val"]["suffix"]}.png')
+                batch_size = len(val_data['lq_path'])
+                for i in range(batch_size):
+                    img_name_single = osp.splitext(osp.basename(val_data['lq_path'][i]))[0]
+                    sr_img_single = tensor2img(visuals['result'][i])
+                    gt_img_single = tensor2img(visuals['gt'][i])
+
+                    # save sr image
+                    if self.opt['is_train']:
+                        save_img_path = osp.join(self.opt['path']['visualization'], img_name_single,
+                                                 f'{img_name_single}_{current_iter}.png')
                     else:
-                        save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
-                                                 f'{img_name}_{self.opt["name"]}.png')
-                imwrite(sr_img, save_img_path)
+                        if self.opt['val']['suffix']:
+                            save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
+                                                     f'{img_name_single}_{self.opt["val"]["suffix"]}.png')
+                        else:
+                            save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
+                                                     f'{img_name_single}_{self.opt["name"]}.png')
+                    imwrite(sr_img_single, save_img_path)
 
-                # calculate metrics for each image
-                individual_metrics = {} 
-                if with_metrics:
-                    for name, opt_ in self.opt['val']['metrics'].items():
-                        score = calculate_metric(metric_data, opt_)
-                        individual_metrics[name] = score
+                    # calculate metrics for each image
+                    individual_metrics = {}
+                    if with_metrics:
+                        metric_data_single = dict(img=sr_img_single, img2=gt_img_single)
+                        for name, opt_ in self.opt['val']['metrics'].items():
+                            score = calculate_metric(metric_data_single, opt_)
+                            individual_metrics[name] = score
 
-                # log images with metrics to wandb
-                if tb_logger and self.opt['logger'].get('wandb') and self.opt['logger']['wandb'].get('project'):
-                    import wandb
-                    caption = f"PSNR: {individual_metrics.get('psnr', 0):.2f}, SSIM: {individual_metrics.get('ssim', 0):.4f}"
-                    sr_wandb_img = wandb.Image(sr_img, caption=caption)
-                    log_dict = {f'SR_results/{img_name}': sr_wandb_img}
+                    # log images with metrics to wandb
+                    if tb_logger and self.opt['logger'].get('wandb') and self.opt['logger']['wandb'].get('project'):
+                        import wandb
+                        caption = f"PSNR: {individual_metrics.get('psnr', 0):.2f}, SSIM: {individual_metrics.get('ssim', 0):.4f}"
+                        sr_wandb_img = wandb.Image(sr_img_single, caption=caption)
+                        log_dict = {f'SR_results/{img_name_single}': sr_wandb_img}
 
-                    if hasattr(self.net_g, 'last_edge_map'):
-                        edge_map_img = tensor2img(self.net_g.last_edge_map)
-                        edge_map_save_path = osp.join(osp.dirname(save_img_path), f'{img_name}_edge_{current_iter}.png')
-                        imwrite(edge_map_img, edge_map_save_path)
-                        edge_map_wandb_img = wandb.Image(edge_map_img)
-                        log_dict[f'edge_map/{img_name}'] = edge_map_wandb_img
-                    
-                    wandb.log(log_dict, step=current_iter)
+                        if hasattr(self.net_g, 'last_edge_map'):
+                            edge_map_img = tensor2img(self.net_g.last_edge_map[i])
+                            edge_map_save_path = osp.join(osp.dirname(save_img_path), f'{img_name_single}_edge_{current_iter}.png')
+                            imwrite(edge_map_img, edge_map_save_path)
+                            edge_map_wandb_img = wandb.Image(edge_map_img)
+                            log_dict[f'edge_map/{img_name_single}'] = edge_map_wandb_img
+                        
+                        wandb.log(log_dict, step=current_iter)
 
             if with_metrics:
-                # calculate metrics
+                # calculate metrics for the whole batch
+                metric_data = dict(img=tensor2img(visuals['result']), img2=tensor2img(visuals['gt']))
                 for name, opt_ in self.opt['val']['metrics'].items():
-                    # The metric has been calculated above for the caption
-                    # We just need to accumulate it here
-                    if name in individual_metrics:
-                        self.metric_results[name] += individual_metrics[name]
-                    else: # fallback if save_img is false
-                        self.metric_results[name] += calculate_metric(metric_data, opt_)
+                    self.metric_results[name] += calculate_metric(metric_data, opt_)
             if use_pbar:
                 pbar.update(1)
                 pbar.set_description(f'Test {img_name}')
