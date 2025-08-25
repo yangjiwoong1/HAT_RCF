@@ -559,7 +559,6 @@ class HAT_RCF(nn.Module):
             x_bicubic = self.bicubic_upsample(x_rcf_input)
             edge_map_list = self.rcf(x_bicubic)
             edge_map_2x = edge_map_list[-1] # last output of RCF
-            self.last_edge_map = edge_map_2x # Save for visualization
         
         edge_features = self.edge_downsampler(edge_map_2x)
 

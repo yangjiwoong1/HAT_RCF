@@ -189,13 +189,6 @@ class HATModel(SRModel):
                         sr_wandb_img = wandb.Image(sr_img_single, caption=caption)
                         log_dict = {f'SR_results/{img_name_single}': sr_wandb_img}
 
-                        if hasattr(self.net_g, 'last_edge_map'):
-                            edge_map_img = tensor2img(self.net_g.last_edge_map[i])
-                            edge_map_save_path = osp.join(osp.dirname(save_img_path), f'{img_name_single}_edge_{current_iter}.png')
-                            imwrite(edge_map_img, edge_map_save_path)
-                            edge_map_wandb_img = wandb.Image(edge_map_img)
-                            log_dict[f'edge_map/{img_name_single}'] = edge_map_wandb_img
-                        
                         wandb.log(log_dict, step=current_iter)
 
             if with_metrics:
