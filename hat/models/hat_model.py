@@ -153,6 +153,7 @@ class HATModel(SRModel):
             del self.output
             torch.cuda.empty_cache()
 
+            # save image and log to wandb
             if save_img:
                 if self.opt['is_train']:
                     save_img_path = osp.join(self.opt['path']['visualization'], img_name,
@@ -166,10 +167,38 @@ class HATModel(SRModel):
                                                  f'{img_name}_{self.opt["name"]}.png')
                 imwrite(sr_img, save_img_path)
 
+                # calculate metrics for each image
+                individual_metrics = {} 
+                if with_metrics:
+                    for name, opt_ in self.opt['val']['metrics'].items():
+                        score = calculate_metric(metric_data, opt_)
+                        individual_metrics[name] = score
+
+                # log images with metrics to wandb
+                if tb_logger and self.opt['logger'].get('wandb') and self.opt['logger']['wandb'].get('project'):
+                    import wandb
+                    caption = f"PSNR: {individual_metrics.get('psnr', 0):.2f}, SSIM: {individual_metrics.get('ssim', 0):.4f}"
+                    sr_wandb_img = wandb.Image(sr_img, caption=caption)
+                    log_dict = {f'SR_results/{img_name}': sr_wandb_img}
+
+                    if hasattr(self.net_g, 'last_edge_map'):
+                        edge_map_img = tensor2img(self.net_g.last_edge_map)
+                        edge_map_save_path = osp.join(osp.dirname(save_img_path), f'{img_name}_edge_{current_iter}.png')
+                        imwrite(edge_map_img, edge_map_save_path)
+                        edge_map_wandb_img = wandb.Image(edge_map_img)
+                        log_dict[f'edge_map/{img_name}'] = edge_map_wandb_img
+                    
+                    wandb.log(log_dict, step=current_iter)
+
             if with_metrics:
                 # calculate metrics
                 for name, opt_ in self.opt['val']['metrics'].items():
-                    self.metric_results[name] += calculate_metric(metric_data, opt_)
+                    # The metric has been calculated above for the caption
+                    # We just need to accumulate it here
+                    if name in individual_metrics:
+                        self.metric_results[name] += individual_metrics[name]
+                    else: # fallback if save_img is false
+                        self.metric_results[name] += calculate_metric(metric_data, opt_)
             if use_pbar:
                 pbar.update(1)
                 pbar.set_description(f'Test {img_name}')
