@@ -48,10 +48,10 @@ class RCF(nn.Module):
         self.score_dsn5 = nn.Conv2d(21, 1, 1)
         self.score_fuse = nn.Conv2d(5, 1, 1)
 
-        self.register_buffer('weight_deconv2', self._make_bilinear_weights(4, 1))
-        self.register_buffer('weight_deconv3', self._make_bilinear_weights(8, 1))
-        self.register_buffer('weight_deconv4', self._make_bilinear_weights(16, 1))
-        self.register_buffer('weight_deconv5', self._make_bilinear_weights(16, 1))
+        self.weight_deconv2 = self._make_bilinear_weights(4, 1)
+        self.weight_deconv3 = self._make_bilinear_weights(8, 1)
+        self.weight_deconv4 = self._make_bilinear_weights(16, 1)
+        self.weight_deconv5 = self._make_bilinear_weights(16, 1)
 
         # init weights
         self.apply(self._init_weights)
@@ -144,10 +144,10 @@ class RCF(nn.Module):
         out4 = self.score_dsn4(conv4_1_down + conv4_2_down + conv4_3_down)
         out5 = self.score_dsn5(conv5_1_down + conv5_2_down + conv5_3_down)
 
-        out2 = F.conv_transpose2d(out2, self.weight_deconv2, stride=2)
-        out3 = F.conv_transpose2d(out3, self.weight_deconv3, stride=4)
-        out4 = F.conv_transpose2d(out4, self.weight_deconv4, stride=8)
-        out5 = F.conv_transpose2d(out5, self.weight_deconv5, stride=8)
+        out2 = F.conv_transpose2d(out2, self.weight_deconv2.to(x.device), stride=2)
+        out3 = F.conv_transpose2d(out3, self.weight_deconv3.to(x.device), stride=4)
+        out4 = F.conv_transpose2d(out4, self.weight_deconv4.to(x.device), stride=8)
+        out5 = F.conv_transpose2d(out5, self.weight_deconv5.to(x.device), stride=8)
 
         out2 = self._crop(out2, img_h, img_w, 1, 1)
         out3 = self._crop(out3, img_h, img_w, 2, 2)

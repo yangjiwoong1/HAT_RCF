@@ -10,9 +10,9 @@ datasets:
   train:
     name: AID_train
     type: PairedImageDataset
-    dataroot_gt: datasets/train/HR
-    dataroot_lq: datasets/train/LR_x4
-    meta_info_file: hat/data/meta_info/meta_info_AID_GT.txt
+    dataroot_gt: datasets/AID-dataset/train/HR
+    dataroot_lq: datasets/AID-dataset/train/LR_x4
+    meta_info_file: ~
     io_backend:
       type: disk
 
@@ -30,15 +30,15 @@ datasets:
   val_1:
     name: AID_val
     type: PairedImageDataset
-    dataroot_gt: ./datasets/val/HR
-    dataroot_lq: ./datasets/val/LR_x4
+    dataroot_gt: ./datasets/AID-dataset/val/HR
+    dataroot_lq: ./datasets/AID-dataset/val/LR_x4
     io_backend:
       type: disk
 
 # network structures
 network_g:
   type: HAT_RCF # Use HAT_RCF model
-  rcf_pretrained_path: pretrained_model/RCF-BSDS.pth # RCF weights
+  rcf_pretrained_path: pretrained_model/bsds500_pascal_model.pth # RCF weights
   upscale: 4
   in_chans: 3
   img_size: 64
