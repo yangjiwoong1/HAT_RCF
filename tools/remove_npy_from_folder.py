@@ -5,7 +5,7 @@ Remove .npy files from AID dataset
 import os
 import glob
 
-folder_path = 'datasets/train/LR_x4'
+folder_path = 'datasets/AID-dataset/train/LR_x4'
 
 npy_files = glob.glob(os.path.join(folder_path, '*.npy'))
 
