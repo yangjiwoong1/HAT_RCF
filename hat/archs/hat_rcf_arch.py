@@ -413,7 +413,7 @@ class HAT_RCF(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2)
         )
 
-        self.alpha = nn.Parameter(torch.tensor(0.1))
+        self.alpha = 0.1
 
         # --- Original HAT Architecture ---
         relative_position_index_SA = self.calculate_rpi_sa()
@@ -584,3 +584,37 @@ class HAT_RCF(nn.Module):
 
         output = res / self.img_range + self.mean
         return output
+
+import torch
+import os.path as osp
+
+# --- 설정 ---
+# 학습된 모델의 체크포인트 파일 경로를 여기에 입력하세요.
+# 예: 'experiments/train_HATRCF_SRx4_from_scratch/models/net_g_800000.pth'
+# 또는 'experiments/train_HATRCF_SRx4_from_scratch/models/net_g_latest.pth'
+checkpoint_path = 'path/to/your/trained_model.pth' # <<-- 이 부분을 실제 경로로 변경해주세요.
+
+# --- 스크립트 실행 ---
+try:
+    # 체크포인트 파일이 존재하는지 확인
+    if not osp.exists(checkpoint_path):
+        raise FileNotFoundError(f"파일을 찾을 수 없습니다: {checkpoint_path}")
+
+    # 체크포인트 로드 (CPU로 로드하여 GPU 없어도 가능)
+    # basicsr의 model.save()는 net_g.state_dict()를 직접 저장합니다.
+    state_dict = torch.load(checkpoint_path, map_location='cpu')
+
+    # 'alpha' 값 확인
+    if 'alpha' in state_dict:
+        alpha_value = state_dict['alpha'].item() # .item()으로 텐서에서 스칼라 값 추출
+        print(f"학습된 alpha 값: {alpha_value}")
+    else:
+        print("오류: 체크포인트에 'alpha' 키가 없습니다.")
+        print("RCF 모듈이 포함된 HAT_RCF 모델을 학습했는지 확인하세요.")
+        print("또는 체크포인트 파일 형식이 예상과 다를 수 있습니다.")
+
+except FileNotFoundError as e:
+    print(f"오류: {e}")
+except Exception as e:
+    print(f"오류 발생: {e}")
+    print("체크포인트 파일 로드 중 문제가 발생했습니다. 파일이 손상되었거나 형식이 다를 수 있습니다.")

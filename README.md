@@ -12,6 +12,7 @@ This project implements a **HAT model with the RCF module incorporated as an edg
 ## Environment
 
 PyTorch >= 1.7 (Recommend NOT using torch 1.8!!! It would cause abnormal performance.)
+
 BasicSR == 1.3.4.9
 
 ### Installation

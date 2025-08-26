@@ -1,5 +1,5 @@
 # general settings
-name: train_HATRCF_SRx4_from_scratch
+name: train_HATRCF_SRx4_from_scratch_alpha-non-learnable
 model_type: HATModel # The model type in the training pipeline will use the registered HAT_RCF
 scale: 4
 num_gpu: auto
@@ -86,7 +86,7 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 1e2
+  val_freq: !!float 5e3
   save_img: true
   pbar: False
 
@@ -105,7 +105,7 @@ val:
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 1e4
+  save_checkpoint_freq: !!float 5e3
   use_tb_logger: true
   wandb:
     project: zee_aid
