@@ -35,6 +35,6 @@ gdown 1oxlHQCM4mm5zhHzmE7yho_oToU5Ucckk
 cd /workspace/HAT_RCF/experiments/pretrained_models/ # HAT weights (optional)
 gdown 1cxls85ZE7kalhNy47eBJI_L_Lwf9hxRI
 
-### manual steps ###
-# 1. /workspace/venv-system/lib/python3.11/site-packages/basicsr/data/degradations.py로 이동해서
-# 2. "from torchvision.transforms.functional_tensor import rgb_to_grayscale" -> "from torchvision.transforms.functional import rgb_to_grayscale" (_tensor 삭제)
+# basicsr/data/degradations.py 파일 수정
+cd /workspace/venv-system/lib/python3.11/site-packages/basicsr/data/
+sed -i 's/from torchvision.transforms.functional_tensor import rgb_to_grayscale/from torchvision.transforms.functional import rgb_to_grayscale/g' degradations.py
