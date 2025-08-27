@@ -5,7 +5,6 @@
 set -e
 
 cd /workspace/
-git clone https://github.com/yangjiwoong1/HAT_RCF.git
 
 # AID dataset download
 (
