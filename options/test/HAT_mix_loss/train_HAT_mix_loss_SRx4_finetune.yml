@@ -1,5 +1,5 @@
-name: HATRCF_SRx4
-model_type: HATModel
+name: HAT_mix_loss_SRx4
+model_type: HATMixedLossModel
 scale: 4
 num_gpu: auto
 manual_seed: 0
@@ -47,9 +47,7 @@ datasets:
 
 # network structures
 network_g:
-  type: HAT_RCF # Use HAT_RCF model
-  rcf_pretrained_path: pretrained_model/bsds500_pascal_model.pth # RCF weights
-  rcf_layer_norm: true
+  type: HAT
   upscale: 4
   in_chans: 3
   img_size: 64
@@ -68,7 +66,7 @@ network_g:
 
 # path
 path:
-  pretrain_network_g: ./experiments/train_HATRCF_SRx4_from_scratch/models/net_g_latest.pth
+  pretrain_network_g: ./experiments/train_HAT_mix_loss_SRx4_finetune/models/net_g_220000.pth
   strict_load_g: true
   param_key_g: 'params_ema'
 

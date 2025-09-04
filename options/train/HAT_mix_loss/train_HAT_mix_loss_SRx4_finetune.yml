@@ -1,6 +1,6 @@
 # general settings
-name: train_HATRCF_SRx4_finetune
-model_type: HATModel
+name: train_HAT_mix_loss_SRx4_finetune
+model_type: HATMixedLossModel
 scale: 4
 num_gpu: auto
 manual_seed: 0
@@ -37,9 +37,7 @@ datasets:
 
 # network structures
 network_g:
-  type: HAT_RCF # Use HAT_RCF model
-  rcf_pretrained_path: pretrained_model/bsds500_pascal_model.pth # RCF weights
-  rcf_layer_norm: true
+  type: HAT
   upscale: 4
   in_chans: 3
   img_size: 64
@@ -58,9 +56,9 @@ network_g:
 
 # path
 path:
-  pretrain_network_g: ./experiments/pretrained_models/HAT_SRx4_ImageNet-pretrain.pth
+  pretrain_network_g: ./experiments/pretrained_models/HAT_SRx4_ImageNet-pretrain.pth # HAT weights
   param_key_g: 'params_ema'
-  strict_load_g: false
+  strict_load_g: true
   resume_state: ~
 
 # training settings
@@ -83,8 +81,19 @@ train:
   # losses
   pixel_opt:
     type: L1Loss
-    loss_weight: 1.0
+    loss_weight: 0.4
     reduction: mean
+
+  mse_opt:
+    type: MSELoss
+    loss_weight: 0.3
+    reduction: mean
+
+  ssim_opt:
+    type: SSIMLoss
+    loss_weight: 0.3
+    window_size: 11
+    size_average: true
 
 # validation settings
 val:

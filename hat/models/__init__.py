@@ -3,6 +3,8 @@ from os import path as osp
 
 from basicsr.utils import scandir
 
+from . import losses # for ssim loss
+
 # automatically scan and import model modules for registry
 # scan all the files that end with '_model.py' under the model folder
 model_folder = osp.dirname(osp.abspath(__file__))
