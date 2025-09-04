@@ -156,5 +156,6 @@ class RCF(nn.Module):
 
         fuse = torch.cat((out1, out2, out3, out4, out5), dim=1)
         fuse = self.score_fuse(fuse)
-        # Return only the fused output to save memory, wrapped in a list for compatibility.
-        return [torch.sigmoid(fuse)]
+        results = [out1, out2, out3, out4, out5, fuse]
+        results = [torch.sigmoid(r) for r in results]
+        return results

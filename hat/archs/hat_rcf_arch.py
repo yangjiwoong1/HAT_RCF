@@ -373,6 +373,7 @@ class HAT_RCF(nn.Module):
                  upsampler='',
                  resi_connection='1conv',
                  rcf_pretrained_path=None,
+                 rcf_layer_norm=False,
                  **kwargs):
         super(HAT_RCF, self).__init__()
 
@@ -393,7 +394,12 @@ class HAT_RCF(nn.Module):
         self.upscale = upscale
         self.upsampler = upsampler
         self.embed_dim = embed_dim
+        self.rcf_layer_norm = rcf_layer_norm
 
+        if rcf_layer_norm:
+            self.norm_hat = nn.LayerNorm(self.embed_dim) 
+            self.norm_edan = nn.LayerNorm(self.embed_dim)
+    
         # --- RCF Integration ---
         self.bicubic_upsample = nn.Upsample(scale_factor=2, mode='bicubic', align_corners=False)
         # RCF's specific mean normalization
@@ -566,8 +572,9 @@ class HAT_RCF(nn.Module):
             
             x_bicubic = self.bicubic_upsample(x_rcf_input)
             edge_map_list = self.rcf(x_bicubic)
+
             edge_map_2x = edge_map_list[-1] # last output of RCF
-        
+
         edge_features = self.edge_downsampler(edge_map_2x)
 
         # HAT branch
@@ -575,6 +582,13 @@ class HAT_RCF(nn.Module):
         x_hat_input = (x - self.mean) * self.img_range
         x_first = self.conv_first(x_hat_input)
         deep_features = self.forward_features(x_first)
+        
+        if self.rcf_layer_norm:
+            deep_features = self.norm_hat(deep_features.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+            edge_features = self.norm_edan(edge_features.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+    
+        # print("HAT features scale:", deep_features.mean(), deep_features.std())
+        # print("EDAN features scale:", edge_features.mean(), edge_features.std())
         
         # Fusion and refine
         fused_features = deep_features + self.alpha * edge_features

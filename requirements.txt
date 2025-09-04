@@ -4,3 +4,4 @@ numpy
 cython
 basicsr==1.3.4.9
 wandb
+tqdm

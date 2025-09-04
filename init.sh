@@ -28,8 +28,8 @@ cd /workspace/
 wait
 
 # download pretrained model
-mkdir -p /workspace/HAT_RCF/pretrained_models/
-cd /workspace/HAT_RCF/pretrained_models/ # RCF weights (required)
+mkdir -p /workspace/HAT_RCF/pretrained_model/
+cd /workspace/HAT_RCF/pretrained_model/ # RCF weights (required)
 gdown 1oxlHQCM4mm5zhHzmE7yho_oToU5Ucckk
 
 cd /workspace/HAT_RCF/experiments/pretrained_models/ # HAT weights (optional)
