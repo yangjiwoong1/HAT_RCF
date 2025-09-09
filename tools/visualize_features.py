@@ -122,10 +122,11 @@ def process_and_save_activations(output_dir):
 
 if __name__ == '__main__':
     # --- USER: Please update these paths ---
-    model_path = '' 
+    model_path = ''
     config_path = ''
-    image_path = ''
-    output_dir = 'figs/hat_feature_maps'
+    image_path = 'datasets/AID-dataset/test/LR_x4/school_252.png'
+    image_name = image_path.split('/')[-1].split('.')[0]
+    output_dir = f'figs/hat_feature_maps/{image_name}'
     # -----------------------------------------
 
     # 1. Load the model and set to evaluation mode
